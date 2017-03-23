@@ -23,7 +23,9 @@ class Player:
             self.pos = fromDB.pos
         
         #initalize final elements    
-        self.direction = 'up'
+        self.facing = 'up'
+        self.lastMove = 0.0
+        self.movementDelay = 100
       
       
       
