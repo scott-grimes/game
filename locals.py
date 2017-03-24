@@ -1,25 +1,16 @@
 import pygame, random
 
-TILESIZE = 40
-MAPWIDTH = 15
-MAPHEIGHT = 10
-
-DIRT = 0
-GRASS = 1
-WATER = 2
-COAL = 3
+TILESIZE = 35
+MOVEMENT_DISTANCE = .5
 
 movementKeys = [pygame.K_w,pygame.K_s,pygame.K_a,pygame.K_d]
 
+directionDict = {0:'up',1:'down',2:'left',3:'right'}
+
 textures = {
-            DIRT : pygame.image.load('data/images/dirt.png'),
-            GRASS : pygame.image.load('data/images/grass.png'),
-            WATER : pygame.image.load('data/images/water.png'),
-            COAL : pygame.image.load('data/images/coal.png')
             }
 
+levelDict = {'test': 'testMap.p'
+    }
 
-resources = [DIRT,GRASS,WATER,COAL]
 
-
-tilemap =[[random.choice(resources) for w in range(MAPWIDTH)] for h in range(MAPHEIGHT)]

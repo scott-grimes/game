@@ -1,17 +1,36 @@
-import pygame, sys, datetime
+import pygame, sys, datetime, map
 from Player import Player
+from importExport import importGameElement, exportGameElement
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
 
+
 pygame.init()
-
 player = Player()
+otherPlayers = []
+level = None
+MAPWIDTH = None
+MAPHEIGHT = None
+COLLISIONS = None
+PLAYER = None
+BACKGROUND_IMAGE = pygame.image.load('data/maps/loginScreen.png')
 
-DISPLAYSURF = pygame.display.set_mode((MAPWIDTH*TILESIZE,MAPHEIGHT*TILESIZE))
 pygame.display.set_caption('MVMMORPG')
-PLAYER = pygame.image.load(player.image).convert_alpha()
+DISPLAYSURF = pygame.display.set_mode((525,350))
 
+def loadNewLevel():
+    global level, MAPWIDTH, MAPHEIGHT, COLLISIONS,BACKGROUND_IMAGE,PLAYER
+    level = importGameElement('testMap.p')
+    MAPWIDTH = len(level.collisions[0])
+    MAPHEIGHT = len(level.collisions)
+    COLLISIONS = level.collisions   
+    BACKGROUND_IMAGE = pygame.image.load(level.image)
+    PLAYER = pygame.image.load(player.image).convert_alpha()
+    
+def playerStatusMenu():
+    #displays the players health and stuff
+    pass
 
 def processCommands():
     
@@ -22,27 +41,42 @@ def processCommands():
             
     keys = pygame.key.get_pressed()
     
-    if (sum(keys)>0): #if a key is pressed
+    #if a key is pressed
+    if (sum(keys)>0): 
         
-        if(sum(keys[a] for a in movementKeys) ): #if a movement key is pressed...
+        #array of booleans representing movement keys pressed [W,S,A,D]
+        movement_wanted = [keys[a] for a in movementKeys]
+        
+        #if a movement key is pressed...
+        if(sum(movement_wanted) ): 
            
+            #if the player has not moved in "player.movementDelay"
             if(pygame.time.get_ticks()>player.lastMove+player.movementDelay):
-                if((keys[pygame.K_d]) and player.pos[0] < MAPWIDTH-1):
-                    player.pos[0]+=.5
-                if((keys[pygame.K_a]) and player.pos[0] > 0):
-                    player.pos[0]-=.5
-                if((keys[pygame.K_w]) and player.pos[1] > 0):
-                    player.pos[1]-=.5
-                if((keys[pygame.K_s]) and player.pos[1] < MAPHEIGHT-1):
-                    player.pos[1]+=.5
-                player.lastMove = pygame.time.get_ticks()
+                
+                #array of strings indicating pressed keys ['up','down','left','right']
+                directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
+                
+                #check each requested direction, if the user can move that way, update position
+                for d in directions:
+                    temp = player.newPosition(player.pos, d)
+                    if(movementAllowed(temp)):
+                        player.pos = [i for i in temp]
+                        player.lastMove = pygame.time.get_ticks()
+                
         
+def movementAllowed(position):
+    #returns true if a current position is not out of bounds or collides
+    return  (position[0]>=0 and
+            position[0]<=MAPWIDTH-1 and
+            position[1]<=MAPHEIGHT-1 and
+            position[1]>=0 and 
+            not player.wouldCollide(position, COLLISIONS))
 
 def updateScreen():
-    for row in range(MAPHEIGHT):
-        for column in range(MAPWIDTH):
-            DISPLAYSURF.blit(textures[tilemap[row][column]],(column*TILESIZE,row*TILESIZE))
-    DISPLAYSURF.blit(PLAYER,(player.pos[0]*TILESIZE,player.pos[1]*TILESIZE))
+    DISPLAYSURF.blit(BACKGROUND_IMAGE,(0,0))
+    if PLAYER:
+        DISPLAYSURF.blit(PLAYER,(player.pos[0]*TILESIZE,+player.pos[1]*TILESIZE))
+   
     pygame.display.update()
     
     
@@ -53,7 +87,6 @@ def text_objects(text, font):
 def button(msg,x,y,w,h,ic,ac,action=None):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
-    print(mouse)
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
         pygame.draw.rect(DISPLAYSURF, ac,(x,y,w,h))
 
@@ -68,18 +101,22 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     DISPLAYSURF.blit(textSurf, textRect)
     
 def runGame():
+    loadNewLevel()
     while True:
         processCommands() 
         updateScreen()   
           
 def startScreen():
+        DISPLAYSURF.blit(BACKGROUND_IMAGE,(0,0))
         while True:
-            button("hi",10,10,100,100,COLOR['white'],COLOR['red'],runGame)
+            button("Login",195,105,160,40,COLOR['white'],COLOR['grey'],runGame)
+            button("New User",195,190,160,40,COLOR['white'],COLOR['grey'],runGame)
             pygame.display.update()
             event = pygame.event.wait()
-            
+            if event.type==QUIT:
+                pygame.quit()
+                sys.exit()
         
-    
 sys.exit(startScreen())
 
     

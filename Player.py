@@ -1,3 +1,5 @@
+import pygame
+from locals import *
 class Player:
     def __init__(self, fromDB = None):
         #load a player from the database
@@ -9,7 +11,8 @@ class Player:
             self.inventory = []
             self.image = 'data/images/player.png'
             self.speed = 50 #miliseconds delay while walking
-            self.pos = [0.0,0.0]
+            self.pos = [5.0,5.0]
+            self.level = 'levelName'
         
         #construct a new player
         else:
@@ -21,11 +24,43 @@ class Player:
             self.image = fromDB.inventory 
             self.speed = fromDB.speed
             self.pos = fromDB.pos
+            self.level = fromDB.pos
         
         #initalize final elements    
         self.facing = 'up'
         self.lastMove = 0.0
         self.movementDelay = 100
-      
+        
+    
+    def wouldCollide(self,position,collisions):
+        #returns true if a given movement would cause a collision with "collision" matrix
+        #collision is a matrix which contains the tiles the user is not allowed to stand on
+        collisionRects = []
+        position = (position[0]*TILESIZE,position[1]*TILESIZE)
+        for y, row in enumerate(collisions):
+            for x, ele in enumerate(row):
+                if(ele is 1):
+                    collisionRects.append(pygame.Rect(x*TILESIZE,y*TILESIZE,TILESIZE,TILESIZE))
+        playerRect = pygame.Rect(position,(TILESIZE,TILESIZE))      
+        
+        if len(playerRect.collidelistall(collisionRects)) is 0:
+            return False
+        return True
+    
+    def newPosition(self,current,direction):
+        #returns what the users new position would be if they moved in "direction"
+        answer = [i for i in current]
+        if(direction == 'right'):
+            answer[0]+=MOVEMENT_DISTANCE
+                    
+        if(direction =='left'):
+            answer[0]-=MOVEMENT_DISTANCE
+                    
+        if(direction == 'up'):
+            answer[1]-=MOVEMENT_DISTANCE
+                    
+        if(direction == 'down'):
+            answer[1]+=MOVEMENT_DISTANCE
+        return answer
       
       

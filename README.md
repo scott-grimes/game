@@ -1,3 +1,4 @@
-# MVMMORPG
+# A MVMMORPG
 
-Minimum Viable Massively Online Multiplayer Role-Playing Game
+Minimum Viable Massivly Multiplayer Online Role Playing Game
+
