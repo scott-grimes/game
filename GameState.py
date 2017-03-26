@@ -5,13 +5,10 @@ from importExport import importZone
 class GameState:
     
     def __init__(self,name):
-        self.name = name #name of the zone we are in
-        image,MAPWIDTH,MAPHEIGHT,COLLISIONS = importZone(zoneDict[name])
+        self.name = name #loads the collisions and images from our zone
+        zoneBackground,MAPWIDTH,MAPHEIGHT,COLLISIONS = importZone(zoneDict[name])
         self.MAPWIDTH =MAPWIDTH
         self.MAPHEIGHT = MAPHEIGHT
         self.COLLISIONS = COLLISIONS
-        self.image = image
-        self.Players = []
-        self.NPCS = []
-        self.Items = []
-        
+        self.zoneBackground = zoneBackground
+    

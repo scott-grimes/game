@@ -14,18 +14,18 @@ PLAYER = None
 BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
 
 pygame.display.set_caption('MVMMORPG')
-DISPLAYSURF = pygame.display.set_mode((525,350))
+SIZE_OF_WINDOW = [15,15]
+tile_size = 32
+DISPLAYSURF = pygame.display.set_mode((SIZE_OF_WINDOW[0]*tile_size,SIZE_OF_WINDOW[0]*tile_size))
 
 def loadNewLevel(zoneName):
+    #loads the collisions and image for our zone
     global GAMESTATE,PLAYER,MAPWIDTH,MAPHEIGHT,COLLISIONS,BACKGROUND_IMAGE
-    
     GAMESTATE = GameState(zoneName)
-    
     MAPWIDTH = GAMESTATE.MAPWIDTH
     MAPHEIGHT = GAMESTATE.MAPHEIGHT
     COLLISIONS = GAMESTATE.COLLISIONS
-    BACKGROUND_IMAGE = pygame.image.load(GAMESTATE.image)
-    PLAYER = pygame.image.load(player.image).convert_alpha()
+    BACKGROUND_IMAGE = pygame.image.load(GAMESTATE.zoneBackground)
     
 def playerStatusMenu():
     #displays the players health and stuff
@@ -71,10 +71,22 @@ def movementAllowed(position):
             position[1]>=0 and 
             not player.wouldCollide(position, COLLISIONS))
 
+def updatePlayerImage():
+        global PLAYER
+        PLAYER = pygame.image.load(player.image).convert_alpha()
+        
+def coord(x,y):
+    "Convert tile coord to pixel coordinates."
+    return -(x-7)*TILESIZE, -(y-7)*TILESIZE
+
+       
 def updateScreen():
-    DISPLAYSURF.blit(BACKGROUND_IMAGE,(0,0))
+    #SIZE_OF_WINDOW
+    DISPLAYSURF.blit(BACKGROUND_IMAGE,(coord(player.pos[0],player.pos[1])))
+    
     if PLAYER:
-        DISPLAYSURF.blit(PLAYER,(player.pos[0]*TILESIZE,+player.pos[1]*TILESIZE))
+        
+        DISPLAYSURF.blit(PLAYER,(7*TILESIZE,7*TILESIZE))
    
     pygame.display.update()
     
@@ -101,6 +113,7 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     
 def runGame():
     loadNewLevel('testMap')
+    updatePlayerImage()
     while True:
         processCommands() 
         updateScreen()   

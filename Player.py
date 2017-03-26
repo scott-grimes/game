@@ -11,7 +11,7 @@ class Player:
             self.inventory = []
             self.image = 'data/images/player.png'
             self.speed = 50 #miliseconds delay while walking
-            self.pos = [5.0,5.0]
+            self.pos = [25,25]
             self.level = 'levelName'
         
         #construct a new player

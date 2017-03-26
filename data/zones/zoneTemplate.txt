@@ -2,5 +2,3 @@ name
 image
 size (width/height)
 collisions
-npcs
-items
