@@ -1,31 +1,30 @@
-import pygame, sys, datetime, map
+import pygame, sys, datetime
 from Player import Player
 from importExport import importGameElement, exportGameElement
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
+from GameState import GameState
 
 
 pygame.init()
 player = Player()
-otherPlayers = []
-level = None
-MAPWIDTH = None
-MAPHEIGHT = None
-COLLISIONS = None
+GAMESTATE = None
 PLAYER = None
-BACKGROUND_IMAGE = pygame.image.load('data/maps/loginScreen.png')
+BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
 
 pygame.display.set_caption('MVMMORPG')
 DISPLAYSURF = pygame.display.set_mode((525,350))
 
-def loadNewLevel():
-    global level, MAPWIDTH, MAPHEIGHT, COLLISIONS,BACKGROUND_IMAGE,PLAYER
-    level = importGameElement('testMap.p')
-    MAPWIDTH = len(level.collisions[0])
-    MAPHEIGHT = len(level.collisions)
-    COLLISIONS = level.collisions   
-    BACKGROUND_IMAGE = pygame.image.load(level.image)
+def loadNewLevel(zoneName):
+    global GAMESTATE,PLAYER,MAPWIDTH,MAPHEIGHT,COLLISIONS,BACKGROUND_IMAGE
+    
+    GAMESTATE = GameState(zoneName)
+    
+    MAPWIDTH = GAMESTATE.MAPWIDTH
+    MAPHEIGHT = GAMESTATE.MAPHEIGHT
+    COLLISIONS = GAMESTATE.COLLISIONS
+    BACKGROUND_IMAGE = pygame.image.load(GAMESTATE.image)
     PLAYER = pygame.image.load(player.image).convert_alpha()
     
 def playerStatusMenu():
@@ -101,7 +100,7 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     DISPLAYSURF.blit(textSurf, textRect)
     
 def runGame():
-    loadNewLevel()
+    loadNewLevel('testMap')
     while True:
         processCommands() 
         updateScreen()   
