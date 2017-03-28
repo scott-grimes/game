@@ -8,6 +8,7 @@ def exportGameElement(fileName,myMap):
     pickle.dump( myMap, open( fileName, "wb" ) )
     
 def importZone(fileName):
+    #imports a zone from a zonefile. 
     lineNum=1
     COLLISIONS= []
     with open(fileName) as f:

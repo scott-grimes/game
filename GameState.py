@@ -1,5 +1,6 @@
 #contains the game state of one zone in the game
 #includes players, NPCS, Items, Collisions, and the background Image
+#updated from the server every tick
 from locals import *
 from importExport import importZone
 class GameState:
