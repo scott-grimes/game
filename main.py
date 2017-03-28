@@ -12,13 +12,12 @@ player = Player()
 GAMESTATE = None
 PLAYER = None
 BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
-
 pygame.display.set_caption('MVMMORPG')
 SIZE_OF_WINDOW = [15,15]
 tile_size = 32
 DISPLAYSURF = pygame.display.set_mode((SIZE_OF_WINDOW[0]*tile_size,SIZE_OF_WINDOW[0]*tile_size))
 
-def loadNewLevel(zoneName):
+def loadNewZone(zoneName):
     #loads the collisions and image for our zone
     global GAMESTATE,PLAYER,MAPWIDTH,MAPHEIGHT,COLLISIONS,BACKGROUND_IMAGE
     GAMESTATE = GameState(zoneName)
@@ -32,7 +31,6 @@ def playerStatusMenu():
     pass
 
 def processCommands():
-    
     for event in pygame.event.get():
         if event.type==QUIT:
             pygame.quit()
@@ -46,9 +44,9 @@ def processCommands():
         #array of booleans representing movement keys pressed [W,S,A,D]
         movement_wanted = [keys[a] for a in movementKeys]
         
+        player.face(movement_wanted)
         #if a movement key is pressed...
-        if(sum(movement_wanted) ): 
-           
+        if(sum(movement_wanted)>0): 
             #if the player has not moved in "player.movementDelay"
             if(pygame.time.get_ticks()>player.lastMove+player.movementDelay):
                 
@@ -61,7 +59,7 @@ def processCommands():
                     if(movementAllowed(temp)):
                         player.pos = [i for i in temp]
                         player.lastMove = pygame.time.get_ticks()
-                
+        
         
 def movementAllowed(position):
     #returns true if a current position is not out of bounds or collides
@@ -72,8 +70,8 @@ def movementAllowed(position):
             not player.wouldCollide(position, COLLISIONS))
 
 def updatePlayerImage():
-        global PLAYER
-        PLAYER = pygame.image.load(player.image).convert_alpha()
+    global PLAYER
+    PLAYER = pygame.image.load(player.getImage()).convert_alpha()
         
 def coord(x,y):
     "Convert tile coord to pixel coordinates."
@@ -83,11 +81,8 @@ def coord(x,y):
 def updateScreen():
     #SIZE_OF_WINDOW
     DISPLAYSURF.blit(BACKGROUND_IMAGE,(coord(player.pos[0],player.pos[1])))
-    
     if PLAYER:
-        
         DISPLAYSURF.blit(PLAYER,(7*TILESIZE,7*TILESIZE))
-   
     pygame.display.update()
     
     
@@ -112,7 +107,7 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     DISPLAYSURF.blit(textSurf, textRect)
     
 def runGame():
-    loadNewLevel('testMap')
+    loadNewZone('testMap')
     updatePlayerImage()
     while True:
         processCommands() 

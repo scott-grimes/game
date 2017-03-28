@@ -63,4 +63,20 @@ class Player:
             answer[1]+=MOVEMENT_DISTANCE
         return answer
       
-      
+    def face(self,movement_wanted):
+        #movement wanted is an array of booleans [w,s,a,d] for direction arrow pressed
+        face = 'down'
+        if(movement_wanted[3]):
+            face = 'right'
+        if(movement_wanted[2]):
+            face = 'left'
+        if(movement_wanted[0]):
+            face = 'up'
+        if(movement_wanted[1]):
+            face = 'down'
+        self.facing = face
+    
+    def getImage(self):
+        #returns the image of the user based on the direction
+        return self.image
+        
