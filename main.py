@@ -6,85 +6,145 @@ from pygame.colordict import THECOLORS as COLOR
 from locals import *
 from GameState import GameState
 import pytmx, pyscroll
+from pytmx.util_pygame import load_pygame
+import pyscroll.data
+from pyscroll.group import PyscrollGroup
+
+# wwrapper to allow screen resizing
+def init_screen(width, height):
+    screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+    return screen
+
+def get_map(fileName):
+    return 'data/zones/'+fileName+'.tmx'
+
+def coord(x,y):
+        "Convert tile coord to pixel coordinates."
+        return [-(x-7)*TILESIZE, -(y-7)*TILESIZE]
+       
+
 
 pygame.init()
-player = Player()
-GAMESTATE = None
-PLAYER = None
-BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
-pygame.display.set_caption('MVMMORPG')
-SIZE_OF_WINDOW = [15,15]
-tile_size = 32
-DISPLAYSURF = pygame.display.set_mode((SIZE_OF_WINDOW[0]*tile_size,SIZE_OF_WINDOW[0]*tile_size))
 
-def loadNewZone(zoneName):
-    #loads the collisions and image for our zone
-    global GAMESTATE,PLAYER,MAPWIDTH,MAPHEIGHT,COLLISIONS,BACKGROUND_IMAGE
-    GAMESTATE = GameState(zoneName)
-    MAPWIDTH = GAMESTATE.MAPWIDTH
-    MAPHEIGHT = GAMESTATE.MAPHEIGHT
-    COLLISIONS = GAMESTATE.COLLISIONS
-    BACKGROUND_IMAGE = pygame.image.load(GAMESTATE.zoneBackground)
+class MainGame(object):
     
-def playerStatusMenu():
-    #displays the players health and stuff
-    pass
-
-def processCommands():
-    for event in pygame.event.get():
-        if event.type==QUIT:
-            pygame.quit()
-            sys.exit()
+    def __init__(self):
+        #true while running
+        self.running = False
+        self.player = Player()
+        self.player.position = [800,700]
+        #load zone map
+        tmx_data = load_pygame(get_map(self.player.zone))
+        
+        #set up collisions
+        self.walls = list()
+        for object in tmx_data.objects:
+            print(object)
+            self.walls.append(pygame.Rect(
+                object.x, object.y,
+                object.width, object.height))
             
-    keys = pygame.key.get_pressed()
+
+        # create new data source for pyscroll
+        map_data = pyscroll.data.TiledMapData(tmx_data)
+        
+        # create new renderer (camera)
+        self.map_layer = pyscroll.BufferedRenderer(map_data, screen.get_size(), clamp_camera=False)
+        self.map_layer.zoom = 1
+        
+        # pyscroll supports layered rendering.  our map has 3 'under' layers
+        # layers begin with 0, so the layers are 0, 1, and 2.
+        # since we want the sprite to be on top of layer 1, we set the default
+        # layer for sprites as 2
+        self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
     
-    #if a key is pressed
-    if (sum(keys)>0): 
         
-        #array of booleans representing movement keys pressed [W,S,A,D]
-        movement_wanted = [keys[a] for a in movementKeys]
+        # add our hero to the group
+        self.group.add(self.player)
+    
+    def draw(self, surface):
+
+        # center the map/screen on our Hero
+        self.group.center(self.player.rect.center)
+
+        # draw the map and all sprites
+        self.group.draw(surface)  
         
-        player.face(movement_wanted)
-        #if a movement key is pressed...
-        if(sum(movement_wanted)>0): 
-            #if the player has not moved in "player.movementDelay"
-            if(pygame.time.get_ticks()>player.lastMove+player.movementDelay):
+        
+    def handle_input(self):
+        # event = poll()
+        # while event:
+        #if event.type == QUIT:
+        # self.running = False
+        #break
+        for event in pygame.event.get():
+            if event.type==QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == VIDEORESIZE:
+                init_screen(event.w, event.h)
+                self.map_layer.set_size((event.w, event.h))
                 
+        keys = pygame.key.get_pressed()
+        
+        #if a key is pressed
+        if (sum(keys)>0): 
+            #array of booleans representing movement keys pressed [W,S,A,D]
+            movement_wanted = [keys[a] for a in movementKeys]
+            
+            self.player.face(movement_wanted)
+            #if a movement key is pressed...
+            if(sum(movement_wanted)>0): 
+                #if the player has not moved in "player.movementDelay"
+                    
                 #array of strings indicating pressed keys ['up','down','left','right']
                 directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
                 
                 #check each requested direction, if the user can move that way, update position
-                for d in directions:
-                    temp = player.newPosition(player.pos, d)
-                    if(movementAllowed(temp)):
-                        player.pos = [i for i in temp]
-                        player.lastMove = pygame.time.get_ticks()
+                for move in directions:
+                    self.player.changeVelocity(move)
+                    
+                            
+    def update(self,dt):
+        self.group.update(dt)
         
+        for sprite in self.group.sprites():
+            if sprite.feet.collidelist(self.walls)>-1:
+                sprite.move_back(dt)
+    
+    
+                
+    def run(self):
+        clock = pygame.time.Clock()
+        self.running = True
+
+        from collections import deque
+        times = deque(maxlen=30)
+
+        try:
+            while self.running:
+                dt = clock.tick(120) / 1000.
+                times.append(clock.get_fps())
+                #print(sum(times) / len(times))
+
+                self.handle_input()
+                self.update(dt)
+                self.draw(screen)
+                pygame.display.flip()
+
+        except KeyboardInterrupt:
+            self.running = False
         
-def movementAllowed(position):
-    #returns true if a current position is not out of bounds or collides
-    return  (position[0]>=0 and
-            position[0]<=MAPWIDTH-1 and
-            position[1]<=MAPHEIGHT-1 and
-            position[1]>=0 and 
-            not player.wouldCollide(position, COLLISIONS))
+
+ 
+
+     
 
 def updatePlayerImage():
     global PLAYER
     PLAYER = pygame.image.load(player.getImage()).convert_alpha()
         
-def coord(x,y):
-    "Convert tile coord to pixel coordinates."
-    return -(x-7)*TILESIZE, -(y-7)*TILESIZE
-
-       
-def updateScreen():
-    #SIZE_OF_WINDOW
-    DISPLAYSURF.blit(BACKGROUND_IMAGE,(coord(player.pos[0],player.pos[1])))
-    if PLAYER:
-        DISPLAYSURF.blit(PLAYER,(7*TILESIZE,7*TILESIZE))
-    pygame.display.update()
-    
+ 
     
 def text_objects(text, font):
     textSurface = font.render(text, True, (0,0,0))
@@ -94,27 +154,30 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
-        pygame.draw.rect(DISPLAYSURF, ac,(x,y,w,h))
+        pygame.draw.rect(screen, ac,(x,y,w,h))
 
         if click[0] == 1 and action != None:
             action()         
     else:
-        pygame.draw.rect(DISPLAYSURF, ic,(x,y,w,h))
+        pygame.draw.rect(screen, ic,(x,y,w,h))
 
     smallText = pygame.font.SysFont("comicsansms",20)
     textSurf, textRect = text_objects(msg, smallText)
     textRect.center = ( (x+(w/2)), (y+(h/2)) )
-    DISPLAYSURF.blit(textSurf, textRect)
+    screen.blit(textSurf, textRect)
     
 def runGame():
-    loadNewZone('testMap')
-    updatePlayerImage()
-    while True:
-        processCommands() 
-        updateScreen()   
+    try:
+        game = MainGame()
+        game.run()
+    except:
+        pygame.quit()
+        raise
+    
           
 def startScreen():
-        DISPLAYSURF.blit(BACKGROUND_IMAGE,(0,0))
+        BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
+        screen.blit(BACKGROUND_IMAGE,(0,0))
         while True:
             button("Login",195,105,160,40,COLOR['white'],COLOR['grey'],runGame)
             button("New User",195,190,160,40,COLOR['white'],COLOR['grey'],runGame)
@@ -123,8 +186,20 @@ def startScreen():
             if event.type==QUIT:
                 pygame.quit()
                 sys.exit()
-        
-sys.exit(startScreen())
 
+
+
+
+if __name__ == "__main__":
+    pygame.init()
+    pygame.font.init()
+    pygame.display.set_caption('MVMMORPG')
+    screen = init_screen(800, 600)
+
+    try:
+        startScreen()
+    except:
+        pygame.quit()
+        raise
     
                
