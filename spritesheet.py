@@ -7,7 +7,8 @@
 
 #NEEDS FIXING
 
-import pygame
+import pygame,
+
 
 class spritesheet(object):
     def __init__(self, filename):

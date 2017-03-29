@@ -5,7 +5,7 @@ from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
 from GameState import GameState
-
+import pytmx, pyscroll
 
 pygame.init()
 player = Player()

@@ -2,6 +2,7 @@ import pygame, random
 
 TILESIZE = 32
 MOVEMENT_DISTANCE = 1
+HERO_MOVE_SPEED = 1  # pixels per second
 
 zoneDict = {'testMap':'data/zones/testZone.txt'}
 

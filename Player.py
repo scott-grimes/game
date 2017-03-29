@@ -1,8 +1,9 @@
 import pygame
 from locals import *
-class Player:
+class Player(pygame.sprite.Sprite):
     def __init__(self, fromDB = None):
         #load a player from the database
+        pygame.sprite.Sprite.__init__(self)
         if fromDB is None:
             self.name = 'bob'
             self.gold = 0
@@ -10,9 +11,8 @@ class Player:
             self.maxHealth = 10
             self.inventory = []
             self.image = 'data/images/player.png'
-            self.speed = 50 #miliseconds delay while walking
-            self.pos = [25,25]
-            self.level = 'levelName'
+            self.position = [0, 0]
+            self.zone = 'testZone'
         
         #construct a new player
         else:
@@ -23,13 +23,18 @@ class Player:
             self.inventory = fromDB.inventory
             self.image = fromDB.inventory 
             self.speed = fromDB.speed
-            self.pos = fromDB.pos
-            self.level = fromDB.pos
+            self.position = fromDB.position
+            self.level = fromDB.level
+            self.zone = fromDB.zone
+        self.image = pygame.image.load('data/images/player.png').convert_alpha()
         
         #initalize final elements    
         self.facing = 'up'
-        self.lastMove = 0.0
-        self.movementDelay = 100
+        self.velocity = [0,0]
+        self.old_position = self.position
+        self.rect = self.image.get_rect()
+        self.feet = pygame.Rect(0, 0, self.rect.width * .5, 8)
+
         
     
     def wouldCollide(self,position,collisions):
@@ -47,21 +52,20 @@ class Player:
             return False
         return True
     
-    def newPosition(self,current,direction):
-        #returns what the users new position would be if they moved in "direction"
-        answer = [i for i in current]
+    def changeVelocity(self,direction):
+       
         if(direction == 'right'):
-            answer[0]+=MOVEMENT_DISTANCE
+            self.position[0]+=HERO_MOVE_SPEED
                     
         if(direction =='left'):
-            answer[0]-=MOVEMENT_DISTANCE
+            self.position[0]-=HERO_MOVE_SPEED
                     
         if(direction == 'up'):
-            answer[1]-=MOVEMENT_DISTANCE
+            self.position[1]-=HERO_MOVE_SPEED
                     
         if(direction == 'down'):
-            answer[1]+=MOVEMENT_DISTANCE
-        return answer
+            self.position[1]+=HERO_MOVE_SPEED
+       
       
     def face(self,movement_wanted):
         #movement wanted is an array of booleans [w,s,a,d] for direction arrow pressed
@@ -75,8 +79,23 @@ class Player:
         if(movement_wanted[1]):
             face = 'down'
         self.facing = face
+        
+    def position(self):
+        return list(self.position)
+
+    def position(self, value):
+        self.position = list(value)
+    def update(self, dt):
+        self.old_position = self.position[:]
+        self.position[0] += self.velocity[0] * dt
+        self.position[1] += self.velocity[1] * dt
+        self.rect.topleft = self.position
+        self.feet.midbottom = self.rect.midbottom
     
-    def getImage(self):
-        #returns the image of the user based on the direction
-        return self.image
+    def move_back(self, dt):
+        """ If called after an update, the sprite can move back to give the
+            illusion of the sprite not moving.
+        """
+        self.position = self.oldposition
+        self.rect.topleft = self.position
         
