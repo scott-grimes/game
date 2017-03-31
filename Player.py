@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
             self.inventory = []
             self.image = 'data/images/player.png'
             self.position = [0, 0]
-            self.zone = 'testZone'
+            self.zone = 'mapWithCollisions'
         
         #construct a new player
         else:
