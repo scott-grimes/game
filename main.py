@@ -1,5 +1,5 @@
 import pygame, sys, datetime, pytmx, pyscroll
-from Player import Character
+from Player import Player
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
@@ -28,7 +28,7 @@ class MainGame(object):
         self.running = False
         
         #creat player, load zone the player is in
-        self.player = Character()
+        self.player = Player()
         self.load_zone(self.player.zone)
         
         # add player to the group of sprites
