@@ -1,82 +1,49 @@
-import pygame, sys, datetime
+import pygame, sys, datetime, pytmx, pyscroll
 from Player import Player
-from importExport import importGameElement, exportGameElement
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
 from GameState import GameState
-import pytmx, pyscroll
-from pytmx.util_pygame import load_pygame
 import pyscroll.data
 from pyscroll.group import PyscrollGroup
 
-# wwrapper to allow screen resizing
+# screen resize
 def init_screen(width, height):
     screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
     return screen
 
-def get_map(fileName):
-    return 'data/zones/'+fileName+'.tmx'
+#wrapper to get map with path name and extention
+def get_map(mapName):
+    return 'data/zones/'+mapName+'.tmx'
 
-def coord(x,y):
-        "Convert tile coord to pixel coordinates."
-        return [-(x-7)*TILESIZE, -(y-7)*TILESIZE]
+
        
 
 
-pygame.init()
 
 class MainGame(object):
     
     def __init__(self):
         #true while running
         self.running = False
+        
+        #creat player, load zone the player is in
         self.player = Player()
-        self.player.position = [800,700]
-        #load zone map
-        tmx_data = load_pygame(get_map(self.player.zone))
+        self.load_zone(self.player.zone)
         
-        #set up collisions
-        self.walls = list()
-        for object in tmx_data.objects:
-            print(object)
-            self.walls.append(pygame.Rect(
-                object.x, object.y,
-                object.width, object.height))
-            
-
-        # create new data source for pyscroll
-        map_data = pyscroll.data.TiledMapData(tmx_data)
-        
-        # create new renderer (camera)
-        self.map_layer = pyscroll.BufferedRenderer(map_data, screen.get_size(), clamp_camera=False)
-        self.map_layer.zoom = 1
-        
-        # pyscroll supports layered rendering.  our map has 3 'under' layers
-        # layers begin with 0, so the layers are 0, 1, and 2.
-        # since we want the sprite to be on top of layer 1, we set the default
-        # layer for sprites as 2
-        self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
-    
-        
-        # add our hero to the group
+        # add player to the group of sprites
         self.group.add(self.player)
     
     def draw(self, surface):
-
-        # center the map/screen on our Hero
+        # center the screen on the player
         self.group.center(self.player.rect.center)
 
-        # draw the map and all sprites
+        # draw everything
         self.group.draw(surface)  
         
         
     def handle_input(self):
-        # event = poll()
-        # while event:
-        #if event.type == QUIT:
-        # self.running = False
-        #break
+        
         for event in pygame.event.get():
             if event.type==QUIT:
                 pygame.quit()
@@ -84,33 +51,59 @@ class MainGame(object):
             elif event.type == VIDEORESIZE:
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w, event.h))
-                
+        
+        #get all the keys which are pressed
         keys = pygame.key.get_pressed()
         
-        #if a key is pressed
+        #if a key is pressed...
         if (sum(keys)>0): 
+            
             #array of booleans representing movement keys pressed [W,S,A,D]
             movement_wanted = [keys[a] for a in movementKeys]
             
+            #turn the player to face desired direction
             self.player.face(movement_wanted)
-            #if a movement key is pressed...
-            if(sum(movement_wanted)>0): 
-                #if the player has not moved in "player.movementDelay"
-                    
+            
+            #if player can move, update the players position
+            currentTime = pygame.time.get_ticks()
+            if(sum(movement_wanted)>0 and
+            currentTime>self.player.lastMove+self.player.speed):
+            
                 #array of strings indicating pressed keys ['up','down','left','right']
                 directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
                 
-                #check each requested direction, if the user can move that way, update position
                 for move in directions:
-                    self.player.changeVelocity(move)
-                    
+                    new_tile,new_rect = self.player.head_towards(move)
+                    if(new_rect.collidelist(self.collisions) == -1):
+                        self.player.tilePos = new_tile[:]
+                self.player.lastMove = currentTime
+                
+    def load_zone(self, zoneName):
+        
+            mapfile = get_map(zoneName)
+            tmx_data = pytmx.util_pygame.load_pygame(mapfile)
+            map_data = pyscroll.data.TiledMapData(tmx_data)
+            self.collisions = []
+            for object in tmx_data.objects:
+                self.collisions.append(pygame.Rect(
+                    object.x, object.y,
+                    object.width, object.height))
+
+            # create camera (aka renderer)
+            self.map_layer = pyscroll.BufferedRenderer(map_data, screen.get_size(), clamp_camera=True)
+            
+            
+        
+            # pyscroll supports layered rendering.  our map has 3 'under' layers
+            # layers begin with 0, so the layers are 0, 1, and 2.
+            # since we want the sprite to be on top of layer 1, we set the default
+            # layer for sprites as 2
+            self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
+                
                             
     def update(self,dt):
         self.group.update(dt)
         
-        for sprite in self.group.sprites():
-            if sprite.feet.collidelist(self.walls)>-1:
-                sprite.move_back(dt)
     
     
                 
@@ -126,7 +119,6 @@ class MainGame(object):
                 dt = clock.tick(120) / 1000.
                 times.append(clock.get_fps())
                 #print(sum(times) / len(times))
-
                 self.handle_input()
                 self.update(dt)
                 self.draw(screen)
@@ -140,9 +132,6 @@ class MainGame(object):
 
      
 
-def updatePlayerImage():
-    global PLAYER
-    PLAYER = pygame.image.load(player.getImage()).convert_alpha()
         
  
     
