@@ -19,7 +19,7 @@ class Player(pygame.sprite.Sprite):
         self.health = 10
         self.maxHealth = 10
         self.inventory = []
-        self.spriteSheet = spritesheet('LPC Base Assets/sprites/people/soldier.png')
+        self.spriteSheet = spritesheet('data/images/LPC Base Assets/sprites/people/soldier.png')
         self.tilePos = [25,21]
         self.zone = 'mapWithCollisions'
         self.facing = 'down'
@@ -38,6 +38,9 @@ class Player(pygame.sprite.Sprite):
         #self.feet.midbottom = self.rect.midbottom
         
     def animate(self):
+        #loads self.walk_animation based on the direction the user is moving
+        #count is used to iterate through the animation images on the spritesheet
+        #self.Animate is True when we want to animate, otherwise a still image is displayed
         self.Animate = True
         self.count = 0
         self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
@@ -45,6 +48,7 @@ class Player(pygame.sprite.Sprite):
         pass
         
     def updateImage(self):
+        #if user is walking, Animate is True, we will flip through images in our spritesheet
         if(self.Animate):
             self.image = self.walk_animation[self.count]
             self.count+=1
@@ -53,6 +57,7 @@ class Player(pygame.sprite.Sprite):
                 self.Animate = False
             pass
         else:
+        #user is not moving, display only the still image of the user
             self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
         
    
@@ -76,6 +81,12 @@ class Player(pygame.sprite.Sprite):
     def position(self, value):
         self.position = list(value)
         
+    def collisionRect(self,tilePosition):
+        #returns the collision Rect centered horizontally on our character
+        #and alligned to the bottom
+        newCoord = self.tileToCoord(tilePosition)
+        return pygame.Rect(newCoord[0]+16, newCoord[1]+32, self.rect.width*.5, self.rect.height * .5)
+        
     def update(self, dt):
         self.position = self.tileToCoord(self.tilePos)
         self.rect.topleft = self.position
@@ -86,18 +97,17 @@ class Player(pygame.sprite.Sprite):
         returns the feet rect in which the player would stand if they 
         headed in direction "move"
         """
-        newFeet = self.tilePos[:]
+        newPos = self.tilePos[:]
        
         if move == 'up':
-            newFeet[1]-=1
+            newPos[1]-=1
         if move == 'down':
-            newFeet[1]+=1
+            newPos[1]+=1
         if move == 'right':
-            newFeet[0]+=1
+            newPos[0]+=1
         if move == 'left':
-            newFeet[0]-=1
-        newCoord = self.tileToCoord(newFeet)
-        
-        return newFeet,pygame.Rect(newCoord[0], newCoord[1], self.rect.width, self.rect.height * .5)
+            newPos[0]-=1
+        collisionRect = self.collisionRect(newPos)
+        return newPos , collisionRect
         
         

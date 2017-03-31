@@ -1,2 +1,2 @@
-#name,position,image,maxHealth,currentHealth,aggro,quest_id
-'innkeeper',[4,4],'data/images/player.png',10,-1,0
+#ID, name,spriteSheet,maxHealth,aggro,quest_id
+0001,slime,data/images/LPC Base Assets/sprites/monsters/slime.png'

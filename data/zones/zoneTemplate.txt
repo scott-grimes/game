@@ -1,4 +1,7 @@
-name
-image
-size (width/height)
-collisions
+npc count, item count, teleport tile count
+npc info 
+npc info...
+item info
+item info...
+teleport tile destination zone
+teleport tile destination zone...

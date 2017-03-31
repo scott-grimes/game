@@ -1,5 +1,5 @@
 import pygame, sys, datetime, pytmx, pyscroll
-from Player import Player
+from Player import Character
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
@@ -28,7 +28,7 @@ class MainGame(object):
         self.running = False
         
         #creat player, load zone the player is in
-        self.player = Player()
+        self.player = Character()
         self.load_zone(self.player.zone)
         
         # add player to the group of sprites
@@ -80,7 +80,7 @@ class MainGame(object):
                 self.player.lastMove = currentTime
                 
     def load_zone(self, zoneName):
-        
+            
             mapfile = get_map(zoneName)
             tmx_data = pytmx.util_pygame.load_pygame(mapfile)
             map_data = pyscroll.data.TiledMapData(tmx_data)
