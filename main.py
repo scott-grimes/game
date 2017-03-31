@@ -76,6 +76,7 @@ class MainGame(object):
                     new_tile,new_rect = self.player.head_towards(move)
                     if(new_rect.collidelist(self.collisions) == -1):
                         self.player.tilePos = new_tile[:]
+                self.player.animate()
                 self.player.lastMove = currentTime
                 
     def load_zone(self, zoneName):

@@ -25,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.facing = 'down'
         self.speed = 200 #can move one tile every this many miliseconds 
         
+        self.Animate = False
         self.updateImage()
         transColor = self.image.get_at((0,0))
         self.image.set_colorkey(transColor)
@@ -36,20 +37,34 @@ class Player(pygame.sprite.Sprite):
         #self.feet = pygame.Rect(0, 0, self.rect.width, self.rect.height * .5)
         #self.feet.midbottom = self.rect.midbottom
         
+    def animate(self):
+        self.Animate = True
+        self.count = 0
+        self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
+        self.walk_animation = self.spriteSheet.load_strip((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]),9)
+        pass
         
     def updateImage(self):
-        self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
+        if(self.Animate):
+            self.image = self.walk_animation[self.count]
+            self.count+=1
+            if(self.count>8):
+                self.count = 0
+                self.Animate = False
+            pass
+        else:
+            self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
         
    
     def face(self,movement_wanted):
         #movement wanted is an array of booleans [w,s,a,d] for direction arrow pressed
         face = 'down'
+        if(movement_wanted[0]):
+            face = 'up'
         if(movement_wanted[3]):
             face = 'right'
         if(movement_wanted[2]):
             face = 'left'
-        if(movement_wanted[0]):
-            face = 'up'
         if(movement_wanted[1]):
             face = 'down'
         self.facing = face
