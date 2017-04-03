@@ -34,11 +34,15 @@ class Character(pygame.sprite.Sprite):
         "Convert a pixel coord into the tile position."
         return [xy[0]/TILESIZE, xy[1]/TILESIZE]
     
+    def resetAnimationFrame(self):
+        self.frame_display_length = self.speed/self.num_animations
+    
     def __init__(self, fromDB = None):
         #load a player from the database
         pygame.sprite.Sprite.__init__(self)
         
         self.Animate = False
+        self.resetAnimationFrame()
         self.updateImage()
         transColor = self.image.get_at((0,0))
         self.image.set_colorkey(transColor)
@@ -46,9 +50,7 @@ class Character(pygame.sprite.Sprite):
         self.position = self.tileToCoord(self.tilePos)
         self.rect = self.image.get_rect()
         self.lastMove = 0
-        self.animation_distance = [
-            ] #distance to move image during each animation frame
-        
+
     def face(self,directions):
         if('down' in directions):
             self.facing = 'down'
@@ -70,15 +72,20 @@ class Character(pygame.sprite.Sprite):
             (0,spriteDirectionDict[self.facing],
              self.character_image_size[0],self.character_image_size[1]),self.num_animations)
         
+        self.resetAnimationFrame()
         
     def updateImage(self):
         #if user is walking or attacking, Animate is True, 
         #and we will flip through images in our spritesheet
         #otherwise display static pictures based on direction facing
+        
+        #dt is frames since last draw
+        
         if(self.Animate):
             #currentTime = pygame.time.get_ticks()
             #if(currentTime>self.lastAnimationFrame+self.animation_speed):
             #self.lastAnimationFrame = currentTime
+            
             self.image = self.walk_animation[self.count]
             self.count+=1
                 
@@ -102,12 +109,13 @@ class Character(pygame.sprite.Sprite):
         
     def move(self,oldTile):
         #builds the positions used in our animation
-        self.animate()
-        self.lastMove = pygame.time.get_ticks()
-        newPos = self.tileToCoord(self.tilePos)
-        oldPos = self.tileToCoord(oldTile)
-        step = [(newPos[i]-oldPos[i])/self.num_animations for i in range(2)]
-        self.animation_positions = [[int(oldPos[0]+step[0]*i),int(oldPos[1]+step[1]*8)] for i in range(self.num_animations)]
+        if(oldTile[0]!=self.tilePos[0] or oldTile[1]!=self.tilePos[1]):
+            self.animate()
+            newPos = self.tileToCoord(self.tilePos)
+            oldPos = self.tileToCoord(oldTile)
+            step = [(newPos[i]-oldPos[i])/self.num_animations for i in range(2)]
+            self.animation_positions = [[int(oldPos[0]+step[0]*i),int(oldPos[1]+step[1]*8)] for i in range(self.num_animations)]
+            
         
         
     def collisionRect(self,tilePosition):
@@ -118,8 +126,11 @@ class Character(pygame.sprite.Sprite):
                            self.rect.width*.5, self.rect.height * .5)
         
     def update(self, dt):
+        self.frame_display_length-=dt
         if(self.Animate):
-            self.position = self.animation_positions[self.count]
+            if(self.frame_display_length<0.0):
+                self.position = self.animation_positions[self.count]
+                self.resetAnimationFrame()
         else:
             self.position = self.tileToCoord(self.tilePos)
         self.rect.topleft = self.position

@@ -96,6 +96,7 @@ class MainGame(object):
                             if(new_rect.collidelist(self.collisions) == -1):
                                 character.tilePos = new_tile[:]
                 character.move(oldPosition)
+                character.lastMove = currentTime
         
             
     def load_zone(self, zoneName):
@@ -155,7 +156,7 @@ class MainGame(object):
 
         try:
             while self.running:
-                dt = clock.tick(120) / 1000.
+                dt = clock.tick(120)
                 times.append(clock.get_fps())
                 #print(sum(times) / len(times))
                 self.handle_input()
