@@ -24,7 +24,7 @@ class Character(pygame.sprite.Sprite):
             directions.append('down')
         if(oth[1]<me[1]):
             directions.append('up')
-        return directions
+        return directions 
         
     def tileToCoord(self,xy):
         "Convert tile coord to pixel coordinates."

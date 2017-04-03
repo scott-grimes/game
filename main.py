@@ -86,7 +86,7 @@ class MainGame(object):
     def moveCharacter(self,character,directions):
         #if character can move in the directions indicated, update the characters position
         
-        if(len(directions)>0):
+        if(len(directions)>0): 
             character.face(directions)
             currentTime = pygame.time.get_ticks()
             if(currentTime>character.lastMove+character.speed):
