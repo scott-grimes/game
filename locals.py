@@ -11,10 +11,11 @@ movementKeys = [pygame.K_w,pygame.K_s,pygame.K_a,pygame.K_d]
 
 directionDict = {0:'up',1:'down',2:'left',3:'right'}
 
-spriteDirectionDict={'up':0,'left':64,'down':64*2,'right':64*3
+spriteDirectionDict={'up':0,'left':1,'down':2,'right':3
     }
 
+#id, [name, image location, image size, number of animations, aggro distance, milisseconds to move one tile
 NPCS = {
-    '0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png']
+    '0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png',[32,32],3,5,400]
     
     }

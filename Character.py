@@ -4,6 +4,28 @@ from locals import *
 
 class Character(pygame.sprite.Sprite):
     
+    def distance(self,otherCharacter):
+        #computes the distance between this character and some other character
+        oth = otherCharacter.tilePos
+        me = self.tilePos
+        return round(((oth[0]-me[0])**2+(oth[1]-me[1])**2)**.5,0)
+    
+    def directionTowards(self,otherCharacter):
+        #returns the movements required to move this character towards the 
+        #other character
+        oth = otherCharacter.tilePos
+        me = self.tilePos
+        directions = []
+        if(oth[0]>me[0]):
+            directions.append('right')
+        if(oth[0]<me[0]):
+            directions.append('left')
+        if(oth[1]>me[1]):
+            directions.append('down')
+        if(oth[1]<me[1]):
+            directions.append('up')
+        return directions
+        
     def tileToCoord(self,xy):
         "Convert tile coord to pixel coordinates."
         return [xy[0]*TILESIZE, xy[1]*TILESIZE]
@@ -25,43 +47,56 @@ class Character(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.lastMove = 0
         
+    def face(self,directions):
+        if('down' in directions):
+            self.facing = 'down'
+        elif('up' in directions):
+            self.facing = 'up'
+        elif('right' in directions):
+            self.facing = 'right'
+        elif('left' in directions):
+            self.facing = 'left'
+        else:
+            self.facing = 'down'
+        self.updateImage()
+        
     def animate(self):
-        #loads self.walk_animation based on the direction the user is moving
+        #loads self.walk_animation based on the direction the user is facing
         #count is used to iterate through the animation images on the spritesheet
         #self.Animate is True when we want to animate, otherwise a still image is displayed
         self.Animate = True
         self.count = 0
-        self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
-        self.walk_animation = self.spriteSheet.load_strip((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]),9)
+        self.animation_speed = self.speed//self.num_animations #how many miliseconds each frame should show
+        self.lastAnimationFrame = pygame.time.get_ticks()
+        self.walk_animation = self.spriteSheet.load_strip(
+            (0,spriteDirectionDict[self.facing],
+             self.character_image_size[0],self.character_image_size[1]),self.num_animations)
+        
         pass
         
     def updateImage(self):
-        #if user is walking, Animate is True, we will flip through images in our spritesheet
+        #if user is walking or attacking, Animate is True, 
+        #and we will flip through images in our spritesheet
+        #otherwise display static pictures based on direction facing
         if(self.Animate):
+            currentTime = pygame.time.get_ticks()
+            #if(currentTime>self.lastAnimationFrame+self.animation_speed):
+            self.lastAnimationFrame = currentTime
             self.image = self.walk_animation[self.count]
             self.count+=1
-            if(self.count>8):
+                
+            if(self.count>self.num_animations-1):
                 self.count = 0
                 self.Animate = False
-            pass
+                pass
+            
         else:
         #user is not moving, display only the still image of the user
-            self.image = self.spriteSheet.image_at((0,spriteDirectionDict[self.facing],PLAYER_IMAGE_SIZE[0],PLAYER_IMAGE_SIZE[1]))
+            yval = spriteDirectionDict[self.facing]*self.character_image_size[1]
+            self.image = self.spriteSheet.image_at(
+                (0,yval,
+                 self.character_image_size[0],self.character_image_size[1]))
         
-   
-    def face(self,movement_wanted):
-        #movement wanted is an array of booleans [w,s,a,d] for direction arrow pressed
-        face = 'down'
-        if(movement_wanted[0]):
-            face = 'up'
-        if(movement_wanted[3]):
-            face = 'right'
-        if(movement_wanted[2]):
-            face = 'left'
-        if(movement_wanted[1]):
-            face = 'down'
-        self.facing = face
-        self.updateImage()
         
     def position(self):
         return list(self.position)
@@ -73,7 +108,8 @@ class Character(pygame.sprite.Sprite):
         #returns the collision Rect centered horizontally on our character
         #and alligned to the bottom
         newCoord = self.tileToCoord(tilePosition)
-        return pygame.Rect(newCoord[0]+16, newCoord[1]+32, self.rect.width*.5, self.rect.height * .5)
+        return pygame.Rect(newCoord[0]+self.character_image_size[0]//4, newCoord[1]+self.character_image_size[1]//2, 
+                           self.rect.width*.5, self.rect.height * .5)
         
     def update(self, dt):
         self.position = self.tileToCoord(self.tilePos)
@@ -105,11 +141,13 @@ class Player(Character):
         self.health = 10
         self.maxHealth = 10
         self.inventory = []
+        self.character_image_size = [64,64]
+        self.num_animations = 9
         self.spriteSheet = spritesheet('data/images/LPC Base Assets/sprites/people/soldier.png')
         self.tilePos = [25,21]
         self.zone = 'mapWithCollisions'
         self.facing = 'down'
-        self.speed = 200 #can move one tile every this many miliseconds 
+        self.speed = 500 #can move one tile every this many miliseconds 
         
         super(Player, self).__init__()    
         
@@ -120,12 +158,15 @@ class NPC(Character):
         npc_data = NPCS[id]
         self.name = npc_data[0]
         spriteSheetLocation = npc_data[1]
+        self.character_image_size = npc_data[2]
+        self.num_animations = npc_data[3]
+        self.aggroDistance = npc_data[4]
+        self.speed = npc_data[5]
         self.inventory = []
         self.spriteSheet = spritesheet(spriteSheetLocation)
-        self.tilePos = [25,23]
+        self.tilePos = [15,23]
+        self.target = None #who is the NPC targeting?
         self.facing = 'down'
-        self.speed = 200 #can move one tile every this many miliseconds 
         super(NPC, self).__init__()    
         
-        
-        
+

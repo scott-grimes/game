@@ -15,9 +15,7 @@ def init_screen(width, height):
 #wrapper to get map with path name and extention
 def get_map(mapName):
     return 'data/zones/'+mapName+'.tmx'
-
-
-       
+   
 
 
 
@@ -63,24 +61,25 @@ class MainGame(object):
             #array of booleans representing movement keys pressed [W,S,A,D]
             movement_wanted = [keys[a] for a in movementKeys]
             
-            #turn the player to face desired direction
-            self.player.face(movement_wanted)
-            
-            #if player can move, update the players position
-            currentTime = pygame.time.get_ticks()
-            if(sum(movement_wanted)>0 and
-            currentTime>self.player.lastMove+self.player.speed):
-            
-                #array of strings indicating pressed keys ['up','down','left','right']
-                directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
+            #array of strings indicating pressed keys ['up','down','left','right']
+            directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
+            self.moveCharacter(self.player,directions)
                 
+                
+    def moveCharacter(self,character,directions):
+        #if character can move in the directions indicated, update the characters position
+        currentTime = pygame.time.get_ticks()
+        if(len(directions)>0):
+            character.face(directions)
+            if(currentTime>character.lastMove+character.speed):
                 for move in directions:
-                    new_tile,new_rect = self.player.head_towards(move)
-                    if(new_rect.collidelist(self.collisions) == -1):
-                        self.player.tilePos = new_tile[:]
-                self.player.animate()
-                self.player.lastMove = currentTime
-                
+                            new_tile,new_rect = character.head_towards(move)
+                            if(new_rect.collidelist(self.collisions) == -1):
+                                character.tilePos = new_tile[:]
+                character.animate()
+                character.lastMove = currentTime
+        
+            
     def load_zone(self, zoneName):
             
             mapfile = get_map(zoneName)
@@ -103,9 +102,28 @@ class MainGame(object):
             # layer for sprites as 2
             self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
                 
+    def moveNPCs(self,dt):
+        for char in self.group:
+                if char is not self.player:
+                    #set aggro targets if there are none
+                    distance = char.distance(self.player)
+                    if(char.target is None and distance<char.aggroDistance):
+                        char.target = self.player
+                        
+                    #move NPC if nessesary   
+                    if(char.target is not None):
+                        #find distance to aggro target
+                        distance = char.distance(char.target)
+                        if(distance>1):
+                            directions = char.directionTowards(char.target)
+                            self.moveCharacter(char,directions)
                             
+        pass
+    
+    
     def update(self,dt):
         self.group.update(dt)
+        self.moveNPCs(dt)
           
     
                 
