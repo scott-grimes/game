@@ -56,8 +56,6 @@ class Character(pygame.sprite.Sprite):
             self.facing = 'right'
         elif('left' in directions):
             self.facing = 'left'
-        else:
-            self.facing = 'down'
         self.updateImage()
         
     def animate(self):
@@ -79,17 +77,16 @@ class Character(pygame.sprite.Sprite):
         #and we will flip through images in our spritesheet
         #otherwise display static pictures based on direction facing
         if(self.Animate):
-            currentTime = pygame.time.get_ticks()
+            #currentTime = pygame.time.get_ticks()
             #if(currentTime>self.lastAnimationFrame+self.animation_speed):
-            self.lastAnimationFrame = currentTime
+            #self.lastAnimationFrame = currentTime
             self.image = self.walk_animation[self.count]
             self.count+=1
                 
             if(self.count>self.num_animations-1):
                 self.count = 0
                 self.Animate = False
-                pass
-            
+            pass
         else:
         #user is not moving, display only the still image of the user
             yval = spriteDirectionDict[self.facing]*self.character_image_size[1]
@@ -147,7 +144,7 @@ class Player(Character):
         self.tilePos = [25,21]
         self.zone = 'mapWithCollisions'
         self.facing = 'down'
-        self.speed = 500 #can move one tile every this many miliseconds 
+        self.speed = 400 #can move one tile every this many miliseconds 
         
         super(Player, self).__init__()    
         

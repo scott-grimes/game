@@ -16,6 +16,6 @@ spriteDirectionDict={'up':0,'left':1,'down':2,'right':3
 
 #id, [name, image location, image size, number of animations, aggro distance, milisseconds to move one tile
 NPCS = {
-    '0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png',[32,32],3,5,400]
+    '0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png',[32,32],3,5,800]
     
     }

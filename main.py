@@ -15,9 +15,8 @@ def init_screen(width, height):
 #wrapper to get map with path name and extention
 def get_map(mapName):
     return 'data/zones/'+mapName+'.tmx'
+
    
-
-
 
 class MainGame(object):
     
@@ -33,6 +32,10 @@ class MainGame(object):
         self.group.add(self.player)
         self.enemy = NPC('0001')
         self.group.add(self.enemy)
+        
+    
+    def rightClickMenu(self):
+        print(pygame.mouse.get_pos())
     
     def draw(self, surface):
         # center the screen on the player
@@ -51,7 +54,8 @@ class MainGame(object):
             elif event.type == VIDEORESIZE:
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w, event.h))
-        
+        if(pygame.mouse.get_pressed()[2]):
+            self.rightClickMenu()
         #get all the keys which are pressed
         keys = pygame.key.get_pressed()
         
@@ -63,15 +67,18 @@ class MainGame(object):
             
             #array of strings indicating pressed keys ['up','down','left','right']
             directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
+            
             self.moveCharacter(self.player,directions)
                 
                 
     def moveCharacter(self,character,directions):
         #if character can move in the directions indicated, update the characters position
-        currentTime = pygame.time.get_ticks()
+        
         if(len(directions)>0):
             character.face(directions)
+            currentTime = pygame.time.get_ticks()
             if(currentTime>character.lastMove+character.speed):
+                
                 for move in directions:
                             new_tile,new_rect = character.head_towards(move)
                             if(new_rect.collidelist(self.collisions) == -1):
@@ -101,6 +108,7 @@ class MainGame(object):
             # since we want the sprite to be on top of layer 1, we set the default
             # layer for sprites as 2
             self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
+            
                 
     def moveNPCs(self,dt):
         for char in self.group:
