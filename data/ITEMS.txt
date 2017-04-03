@@ -1,3 +1,0 @@
-#name, description, image
-Sword, Looks Sharp!, data/images/sword.jpg
-Shirt, Looks Sharp!, data/images/shirt.jpg

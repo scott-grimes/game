@@ -14,6 +14,7 @@ directionDict = {0:'up',1:'down',2:'left',3:'right'}
 spriteDirectionDict={'up':0,'left':64,'down':64*2,'right':64*3
     }
 
-
-NPC_DICT = {'0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png']
-            }
+NPCS = {
+    '0001':['slime','data/images/LPC Base Assets/sprites/monsters/slime.png']
+    
+    }

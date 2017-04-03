@@ -12,8 +12,18 @@ class Character(pygame.sprite.Sprite):
         "Convert a pixel coord into the tile position."
         return [xy[0]/TILESIZE, xy[1]/TILESIZE]
     
-    def __init__(self):
+    def __init__(self, fromDB = None):
+        #load a player from the database
         pygame.sprite.Sprite.__init__(self)
+        
+        self.Animate = False
+        self.updateImage()
+        transColor = self.image.get_at((0,0))
+        self.image.set_colorkey(transColor)
+        #initalize final elements    
+        self.position = self.tileToCoord(self.tilePos)
+        self.rect = self.image.get_rect()
+        self.lastMove = 0
         
     def animate(self):
         #loads self.walk_animation based on the direction the user is moving
@@ -68,7 +78,6 @@ class Character(pygame.sprite.Sprite):
     def update(self, dt):
         self.position = self.tileToCoord(self.tilePos)
         self.rect.topleft = self.position
-        #self.feet.midbottom = self.rect.midbottom
     
     def head_towards(self, move):
         """ 
@@ -88,13 +97,9 @@ class Character(pygame.sprite.Sprite):
         collisionRect = self.collisionRect(newPos)
         return newPos , collisionRect
         
-class PlayerCharacter(pygame.sprite.Sprite,Character):
     
-    
-    
-    def __init__(self, fromDB = None):
-        #load a player from the database
-        Character.__init__(self)
+class Player(Character):
+    def __init__(self):
         self.name = 'bob'
         self.gold = 0
         self.health = 10
@@ -106,23 +111,21 @@ class PlayerCharacter(pygame.sprite.Sprite,Character):
         self.facing = 'down'
         self.speed = 200 #can move one tile every this many miliseconds 
         
-        self.Animate = False
-        self.updateImage()
-        transColor = self.image.get_at((0,0))
-        self.image.set_colorkey(transColor)
-        #initalize final elements    
-        self.position = self.tileToCoord(self.tilePos)
-        self.rect = self.image.get_rect()
-        self.lastMove = 0
-        
-        #self.feet = pygame.Rect(0, 0, self.rect.width, self.rect.height * .5)
-        #self.feet.midbottom = self.rect.midbottom
+        super(Player, self).__init__()    
         
     
         
-class NPC(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+class NPC(Character):
+    def __init__(self, id):
+        npc_data = NPCS[id]
+        self.name = npc_data[0]
+        spriteSheetLocation = npc_data[1]
+        self.inventory = []
+        self.spriteSheet = spritesheet(spriteSheetLocation)
+        self.tilePos = [25,23]
+        self.facing = 'down'
+        self.speed = 200 #can move one tile every this many miliseconds 
+        super(NPC, self).__init__()    
         
         
         

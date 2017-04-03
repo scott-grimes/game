@@ -1,2 +1,0 @@
-#ID, name,spriteSheet,maxHealth,aggro,quest_id
-0001,slime,data/images/LPC Base Assets/sprites/monsters/slime.png'

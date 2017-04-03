@@ -1,5 +1,5 @@
 import pygame, sys, datetime, pytmx, pyscroll
-from Player import Player
+from Character import *
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
@@ -33,6 +33,8 @@ class MainGame(object):
         
         # add player to the group of sprites
         self.group.add(self.player)
+        self.enemy = NPC('0001')
+        self.group.add(self.enemy)
     
     def draw(self, surface):
         # center the screen on the player
@@ -104,8 +106,7 @@ class MainGame(object):
                             
     def update(self,dt):
         self.group.update(dt)
-        
-    
+          
     
                 
     def run(self):
@@ -129,13 +130,7 @@ class MainGame(object):
             self.running = False
         
 
- 
-
      
-
-        
- 
-    
 def text_objects(text, font):
     textSurface = font.render(text, True, (0,0,0))
     return textSurface, textSurface.get_rect()
