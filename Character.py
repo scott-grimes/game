@@ -46,6 +46,8 @@ class Character(pygame.sprite.Sprite):
         self.position = self.tileToCoord(self.tilePos)
         self.rect = self.image.get_rect()
         self.lastMove = 0
+        self.animation_distance = [
+            ] #distance to move image during each animation frame
         
     def face(self,directions):
         if('down' in directions):
@@ -109,8 +111,11 @@ class Character(pygame.sprite.Sprite):
                            self.rect.width*.5, self.rect.height * .5)
         
     def update(self, dt):
-        self.position = self.tileToCoord(self.tilePos)
-        self.rect.topleft = self.position
+        self.moving = True
+        if(self.moving):
+            self.position = self.tileToCoord(self.tilePos)
+            self.rect.topleft = self.position
+        
     
     def head_towards(self, move):
         """ 

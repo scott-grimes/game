@@ -16,6 +16,14 @@ def init_screen(width, height):
 def get_map(mapName):
     return 'data/zones/'+mapName+'.tmx'
 
+
+def rightClickMenu():
+    print(pygame.mouse.get_pos())
+    
+
+def chatWindow():
+    print('user pressed enter')
+
    
 
 class MainGame(object):
@@ -34,8 +42,6 @@ class MainGame(object):
         self.group.add(self.enemy)
         
     
-    def rightClickMenu(self):
-        print(pygame.mouse.get_pos())
     
     def draw(self, surface):
         # center the screen on the player
@@ -43,6 +49,7 @@ class MainGame(object):
 
         # draw everything
         self.group.draw(surface)  
+        
         
         
     def handle_input(self):
@@ -55,12 +62,17 @@ class MainGame(object):
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w, event.h))
         if(pygame.mouse.get_pressed()[2]):
-            self.rightClickMenu()
+            rightClickMenu()
         #get all the keys which are pressed
         keys = pygame.key.get_pressed()
         
+        
+        if(keys[pygame.K_RETURN]):
+            chatWindow()
+        
         #if a key is pressed...
         if (sum(keys)>0): 
+            
             
             #array of booleans representing movement keys pressed [W,S,A,D]
             movement_wanted = [keys[a] for a in movementKeys]
