@@ -25,14 +25,13 @@ class Character(pygame.sprite.Sprite):
         if(oth[1]<me[1]):
             directions.append('up')
         return directions 
-        
     def tileToCoord(self,xy):
         "Convert tile coord to pixel coordinates."
-        return [xy[0]*TILESIZE, xy[1]*TILESIZE]
+        return [xy[0]*TILESIZE, xy[1]*TILESIZE-self.character_image_size[1]]
     
     def coordToTile(self,xy):
         "Convert a pixel coord into the tile position."
-        return [xy[0]/TILESIZE, xy[1]/TILESIZE]
+        return [xy[0]/TILESIZE, xy[1]/TILESIZE+self.character_image_size[1]]
     
     def resetAnimationFrame(self):
         self.frame_display_length = self.speed/self.num_animations
@@ -46,7 +45,6 @@ class Character(pygame.sprite.Sprite):
         self.updateImage()
         transColor = self.image.get_at((0,0))
         self.image.set_colorkey(transColor)
-        #initalize final elements    
         self.position = self.tileToCoord(self.tilePos)
         self.rect = self.image.get_rect()
         self.lastMove = 0
@@ -106,16 +104,6 @@ class Character(pygame.sprite.Sprite):
 
     def position(self, value):
         self.position = list(value)
-        
-    def move(self,oldTile):
-        #builds the positions used in our animation
-        if(oldTile[0]!=self.tilePos[0] or oldTile[1]!=self.tilePos[1]):
-            self.animate()
-            newPos = self.tileToCoord(self.tilePos)
-            oldPos = self.tileToCoord(oldTile)
-            step = [(newPos[i]-oldPos[i])/self.num_animations for i in range(2)]
-            self.animation_positions = [[int(oldPos[0]+step[0]*i),int(oldPos[1]+step[1]*8)] for i in range(self.num_animations)]
-            
         
         
     def collisionRect(self,tilePosition):
@@ -181,8 +169,9 @@ class NPC(Character):
         spriteSheetLocation = npc_data[1]
         self.character_image_size = npc_data[2]
         self.num_animations = npc_data[3]
-        self.aggroDistance = npc_data[4]
-        self.speed = npc_data[5]
+        self.aggro = npc_data[4]
+        self.aggroDistance = npc_data[5]
+        self.speed = npc_data[6]
         self.inventory = []
         self.spriteSheet = spritesheet(spriteSheetLocation)
         self.tilePos = [15,23]

@@ -95,7 +95,7 @@ class MainGame(object):
                             new_tile,new_rect = character.head_towards(move)
                             if(new_rect.collidelist(self.collisions) == -1):
                                 character.tilePos = new_tile[:]
-                character.move(oldPosition)
+                
                 character.lastMove = currentTime
         
             
@@ -127,7 +127,9 @@ class MainGame(object):
                 if char is not self.player:
                     #set aggro targets if there are none
                     distance = char.distance(self.player)
-                    if(char.target is None and distance<char.aggroDistance):
+                    if(char.target is None and 
+                       distance<char.aggroDistance
+                       and char.aggro == 1):
                         char.target = self.player
                         
                     #move NPC if nessesary   
@@ -146,7 +148,6 @@ class MainGame(object):
         self.moveNPCs(dt)
           
     
-                
     def run(self):
         clock = pygame.time.Clock()
         self.running = True
