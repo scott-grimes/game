@@ -90,13 +90,12 @@ class MainGame(object):
             character.face(directions)
             currentTime = pygame.time.get_ticks()
             if(currentTime>character.lastMove+character.speed):
-                
+                oldPosition = character.tilePos[:]
                 for move in directions:
                             new_tile,new_rect = character.head_towards(move)
                             if(new_rect.collidelist(self.collisions) == -1):
                                 character.tilePos = new_tile[:]
-                character.animate()
-                character.lastMove = currentTime
+                character.move(oldPosition)
         
             
     def load_zone(self, zoneName):

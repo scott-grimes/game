@@ -66,13 +66,10 @@ class Character(pygame.sprite.Sprite):
         #self.Animate is True when we want to animate, otherwise a still image is displayed
         self.Animate = True
         self.count = 0
-        self.animation_speed = self.speed//self.num_animations #how many miliseconds each frame should show
-        self.lastAnimationFrame = pygame.time.get_ticks()
         self.walk_animation = self.spriteSheet.load_strip(
             (0,spriteDirectionDict[self.facing],
              self.character_image_size[0],self.character_image_size[1]),self.num_animations)
         
-        pass
         
     def updateImage(self):
         #if user is walking or attacking, Animate is True, 
@@ -103,6 +100,16 @@ class Character(pygame.sprite.Sprite):
     def position(self, value):
         self.position = list(value)
         
+    def move(self,oldTile):
+        #builds the positions used in our animation
+        self.animate()
+        self.lastMove = pygame.time.get_ticks()
+        newPos = self.tileToCoord(self.tilePos)
+        oldPos = self.tileToCoord(oldTile)
+        step = [(newPos[i]-oldPos[i])/self.num_animations for i in range(2)]
+        self.animation_positions = [[int(oldPos[0]+step[0]*i),int(oldPos[1]+step[1]*8)] for i in range(self.num_animations)]
+        
+        
     def collisionRect(self,tilePosition):
         #returns the collision Rect centered horizontally on our character
         #and alligned to the bottom
@@ -111,10 +118,11 @@ class Character(pygame.sprite.Sprite):
                            self.rect.width*.5, self.rect.height * .5)
         
     def update(self, dt):
-        self.moving = True
-        if(self.moving):
+        if(self.Animate):
+            self.position = self.animation_positions[self.count]
+        else:
             self.position = self.tileToCoord(self.tilePos)
-            self.rect.topleft = self.position
+        self.rect.topleft = self.position
         
     
     def head_towards(self, move):
