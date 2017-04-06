@@ -1,4 +1,4 @@
-import pygame, sys, datetime, pytmx, pyscroll
+import pygame, sys, datetime, pytmx, pyscroll, eztext
 from Character import *
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
@@ -6,6 +6,7 @@ from locals import *
 from GameState import GameState
 import pyscroll.data
 from pyscroll.group import PyscrollGroup
+from rightClickPopup import *
 
 # screen resize
 def init_screen(width, height):
@@ -16,15 +17,6 @@ def init_screen(width, height):
 def get_map(mapName):
     return 'data/zones/'+mapName+'.tmx'
 
-
-def rightClickMenu():
-    print(pygame.mouse.get_pos())
-    
-
-def chatWindow():
-    print('user pressed enter')
-
-   
 
 class MainGame(object):
     
@@ -40,8 +32,41 @@ class MainGame(object):
         self.group.add(self.player)
         self.enemy = NPC('0001')
         self.group.add(self.enemy)
-        
+        self.chatIsOn = False
+        self.rightClickMenuShowing = False
+        self.txtbx = eztext.Input(maxlength=45, color=(255,0,0), prompt='{}: '.format(self.player.name))
     
+    def leftClick(self):
+        currentTime = pygame.time.get_ticks()
+        if(self.rightClickMenuShowing):
+            if(currentTime>self.rightClickMenu.timeToWait+self.rightClickMenu.openTime):
+                self.rightClickMenuShowing = False
+                self.richtClickMenu = None
+        
+    def rightClick(self):
+        currentTime = pygame.time.get_ticks()
+        if(self.rightClickMenuShowing):
+            if(currentTime>self.rightClickMenu.timeToWait+self.rightClickMenu.openTime):
+                self.rightClickMenuShowing = False
+                self.richtClickMenu = None
+        else:
+            self.rightClickMenuShowing = True
+            self.rightClickMenu = rightClickPopup(pygame.mouse.get_pos(),currentTime)
+            
+    def chatWindow(self):
+        #called when Return is pressed
+        currentTime = pygame.time.get_ticks()
+        if(self.txtbx.lastEnterPress+self.txtbx.timeToWait<currentTime):
+            if(self.chatIsOn):
+                self.chatIsOn = False
+                self.text_input = self.txtbx.value[:]
+                self.txtbx.value = ''
+                self.txtbx.lastEnterPress = currentTime
+                print(self.text_input)
+            else:
+                self.chatIsOn=True
+                self.txtbx.lastEnterPress = currentTime
+        pass
     
     def draw(self, surface):
         # center the screen on the player
@@ -49,12 +74,11 @@ class MainGame(object):
 
         # draw everything
         self.group.draw(surface)  
-        
-        
+          
         
     def handle_input(self):
-        
-        for event in pygame.event.get():
+        events = pygame.event.get()
+        for event in events:
             if event.type==QUIT:
                 pygame.quit()
                 sys.exit()
@@ -62,25 +86,32 @@ class MainGame(object):
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w, event.h))
         if(pygame.mouse.get_pressed()[2]):
-            rightClickMenu()
+            self.rightClick()
+        if(pygame.mouse.get_pressed()[0]):
+            self.leftClick()
+        
         #get all the keys which are pressed
         keys = pygame.key.get_pressed()
         
+        if(self.chatIsOn):
+            if(keys[pygame.K_RETURN]):
+                self.chatWindow()
+            else:
+                self.txtbx.update(events)
+        else:
+            if(keys[pygame.K_RETURN]):
+                self.chatWindow()
         
-        if(keys[pygame.K_RETURN]):
-            chatWindow()
-        
-        #if a key is pressed...
-        if (sum(keys)>0): 
-            
-            
-            #array of booleans representing movement keys pressed [W,S,A,D]
-            movement_wanted = [keys[a] for a in movementKeys]
-            
-            #array of strings indicating pressed keys ['up','down','left','right']
-            directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
-            
-            self.moveCharacter(self.player,directions)
+            #if a key is pressed...
+            if (sum(keys)>0): 
+                
+                #array of booleans representing movement keys pressed [W,S,A,D]
+                movement_wanted = [keys[a] for a in movementKeys]
+                
+                #array of strings indicating pressed keys ['up','down','left','right']
+                directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
+                
+                self.moveCharacter(self.player,directions)
                 
                 
     def moveCharacter(self,character,directions):
@@ -163,6 +194,13 @@ class MainGame(object):
                 self.handle_input()
                 self.update(dt)
                 self.draw(screen)
+                
+                if(self.chatIsOn):
+                    self.txtbx.draw(screen)
+                    
+                if(self.rightClickMenuShowing):
+                    self.rightClickMenu.draw(screen)
+                    
                 pygame.display.flip()
 
         except KeyboardInterrupt:
