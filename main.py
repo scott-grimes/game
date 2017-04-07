@@ -35,6 +35,7 @@ class MainGame(object):
         self.chatIsOn = False
         self.rightClickMenuShowing = False
         self.txtbx = eztext.Input(maxlength=45, color=(255,0,0), prompt='{}: '.format(self.player.name))
+        self.movement_queue = []
     
     def leftClick(self):
         currentTime = pygame.time.get_ticks()
@@ -53,20 +54,6 @@ class MainGame(object):
             self.rightClickMenuShowing = True
             self.rightClickMenu = rightClickPopup(pygame.mouse.get_pos(),currentTime)
             
-    def chatWindow(self):
-        #called when Return is pressed
-        currentTime = pygame.time.get_ticks()
-        if(self.txtbx.lastEnterPress+self.txtbx.timeToWait<currentTime):
-            if(self.chatIsOn):
-                self.chatIsOn = False
-                self.text_input = self.txtbx.value[:]
-                self.txtbx.value = ''
-                self.txtbx.lastEnterPress = currentTime
-                print(self.text_input)
-            else:
-                self.chatIsOn=True
-                self.txtbx.lastEnterPress = currentTime
-        pass
     
     def draw(self, surface):
         # center the screen on the player
@@ -74,10 +61,10 @@ class MainGame(object):
 
         # draw everything
         self.group.draw(surface)  
-          
-        
+             
     def handle_input(self):
         events = pygame.event.get()
+        movement_queue = [] #list of movement keys pressed 
         for event in events:
             if event.type==QUIT:
                 pygame.quit()
@@ -85,38 +72,38 @@ class MainGame(object):
             elif event.type == VIDEORESIZE:
                 init_screen(event.w, event.h)
                 self.map_layer.set_size((event.w, event.h))
-        if(pygame.mouse.get_pressed()[2]):
-            self.rightClick()
-        if(pygame.mouse.get_pressed()[0]):
-            self.leftClick()
-        
-        #get all the keys which are pressed
-        keys = pygame.key.get_pressed()
-        
-        if(self.chatIsOn):
-            if(keys[pygame.K_RETURN]):
-                self.chatWindow()
-            else:
-                self.txtbx.update(events)
-        else:
-            if(keys[pygame.K_RETURN]):
-                self.chatWindow()
-        
-            #if a key is pressed...
-            if (sum(keys)>0): 
-                
-                #array of booleans representing movement keys pressed [W,S,A,D]
-                movement_wanted = [keys[a] for a in movementKeys]
-                
-                #array of strings indicating pressed keys ['up','down','left','right']
-                directions = [directionDict[i] for i, x in enumerate(movement_wanted) if x]
-                
-                self.moveCharacter(self.player,directions)
-                
-                
-    def moveCharacter(self,character,directions):
+        #change pressed to mouse_down / up que
+            if(event.type == MOUSEBUTTONUP):
+                if(event.button == 1):
+                    self.leftClick()
+                if(event.button == 3):
+                    self.rightClick()
+                    pygame.KEYDOWN
+            if(event.type == pygame.KEYDOWN):
+                if(self.txtbx.chatActivated):
+                #CHAT WINDOW TAKES KEYS
+                    if(event.key==13): #enter is pressed
+                        self.text_input = self.txtbx.read() #accept users input
+                        print(self.text_input)
+                    elif(event.key== 27): #escape was pressed while chatting
+                        self.txtbx.reset() #throw out chat window
+                    else:
+                        self.txtbx.update(event)
+                else: 
+                #chat is disabled, keys go into game
+                    if(event.key==13): #enter is pressed while not chatting, open chat window
+                        self.txtbx.enable()
+                    if(event.key in movementKeys.keys() and
+                       movementKeys[event.key] not in self.player.movement_queue):
+                        self.player.movement_queue.append(movementKeys[event.key])
+        if(len(self.player.movement_queue)>1):
+            self.moveCharacter(self.player)
+
+                        
+    def moveCharacter(self,character):
         #if character can move in the directions indicated, update the characters position
-        
+        directions = character.movement_queue
+        print(directions)
         if(len(directions)>0): 
             character.face(directions)
             currentTime = pygame.time.get_ticks()
@@ -128,8 +115,8 @@ class MainGame(object):
                                 character.tilePos = new_tile[:]
                 
                 character.lastMove = currentTime
-        
-            
+            character.movement_queue = []
+             
     def load_zone(self, zoneName):
             
             mapfile = get_map(zoneName)
@@ -151,8 +138,7 @@ class MainGame(object):
             # since we want the sprite to be on top of layer 1, we set the default
             # layer for sprites as 2
             self.group = PyscrollGroup(map_layer=self.map_layer, default_layer=2)
-            
-                
+               
     def moveNPCs(self,dt):
         for char in self.group:
                 if char is not self.player:
@@ -195,7 +181,7 @@ class MainGame(object):
                 self.update(dt)
                 self.draw(screen)
                 
-                if(self.chatIsOn):
+                if(self.txtbx.chatActivated):
                     self.txtbx.draw(screen)
                     
                 if(self.rightClickMenuShowing):
@@ -255,6 +241,7 @@ def startScreen():
 if __name__ == "__main__":
     pygame.init()
     pygame.font.init()
+    pygame.key.set_repeat(100,50)
     pygame.display.set_caption('MVMMORPG')
     screen = init_screen(800, 600)
 

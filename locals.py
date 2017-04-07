@@ -5,9 +5,8 @@ PLAYER_IMAGE_SIZE = (64,64)
 
 zoneDict = {'testMap':'data/zones/testZone.txt'}
 
-movementKeys = [pygame.K_w,pygame.K_s,pygame.K_a,pygame.K_d]
+movementKeys = {pygame.K_w:'up',pygame.K_s:'down',pygame.K_a:'left',pygame.K_d:'right'}
 
-directionDict = {0:'up',1:'down',2:'left',3:'right'}
 
 spriteDirectionDict={'up':0,'left':1,'down':2,'right':3
     }

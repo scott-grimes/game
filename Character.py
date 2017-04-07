@@ -48,6 +48,7 @@ class Character(pygame.sprite.Sprite):
         self.position = self.tileToCoord(self.tilePos)
         self.rect = self.image.get_rect()
         self.lastMove = 0
+        self.movement_queue = []
 
     def face(self,directions):
         if('down' in directions):
