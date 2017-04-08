@@ -96,26 +96,14 @@ class MainGame(object):
                     if(event.key in movementKeys.keys() and
                        movementKeys[event.key] not in self.player.movement_queue):
                         self.player.movement_queue.append(movementKeys[event.key])
-        if(len(self.player.movement_queue)>1):
-            self.moveCharacter(self.player)
-
-                        
-    def moveCharacter(self,character):
-        #if character can move in the directions indicated, update the characters position
-        directions = character.movement_queue
-        print(directions)
-        if(len(directions)>0): 
-            character.face(directions)
-            currentTime = pygame.time.get_ticks()
-            if(currentTime>character.lastMove+character.speed):
-                oldPosition = character.tilePos[:]
-                for move in directions:
-                            new_tile,new_rect = character.head_towards(move)
-                            if(new_rect.collidelist(self.collisions) == -1):
-                                character.tilePos = new_tile[:]
+            elif(event.type == pygame.KEYUP):
+                if(event.key in movementKeys.keys() and
+                   movementKeys[event.key] in self.player.movement_queue):
+                    self.player.movement_queue.remove(movementKeys[event.key])
                 
-                character.lastMove = currentTime
-            character.movement_queue = []
+        if(len(self.player.movement_queue)>0):
+            self.player.moveCharacter(self.collisions)
+
              
     def load_zone(self, zoneName):
             
@@ -154,8 +142,9 @@ class MainGame(object):
                         #find distance to aggro target
                         distance = char.distance(char.target)
                         if(distance>1):
-                            directions = char.directionTowards(char.target)
-                            self.moveCharacter(char,directions)
+                            char.movement_queue = char.directionTowards(char.target)
+                            char.moveCharacter(self.collisions)
+                            char.movement_queue = []
                             
         pass
     

@@ -125,7 +125,7 @@ class Character(pygame.sprite.Sprite):
         self.rect.topleft = self.position
         
     
-    def head_towards(self, move):
+    def headed_towards(self, move):
         """ 
         returns the feet rect in which the player would stand if they 
         headed in direction "move"
@@ -144,6 +144,22 @@ class Character(pygame.sprite.Sprite):
         return newPos , collisionRect
         
     
+                        
+    def moveCharacter(self,collisions):
+        #if character can move in the directions indicated, update the characters position
+        directions = self.movement_queue
+      
+        if(len(directions)>0): 
+            self.face(directions)
+            currentTime = pygame.time.get_ticks()
+            if(currentTime>self.lastMove+self.speed):
+                oldPosition = self.tilePos[:]
+                for move in directions:
+                            new_tile,new_rect = self.headed_towards(move)
+                            if(new_rect.collidelist(collisions) == -1):
+                                self.tilePos = new_tile[:]
+                
+                self.lastMove = currentTime
 class Player(Character):
     def __init__(self):
         self.name = 'bob'
