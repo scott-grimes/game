@@ -39,7 +39,6 @@ class Character(pygame.sprite.Sprite):
     def __init__(self, fromDB = None):
         #load a player from the database
         pygame.sprite.Sprite.__init__(self)
-        
         self.Animate = False
         self.resetAnimationFrame()
         self.updateImage()
@@ -47,8 +46,17 @@ class Character(pygame.sprite.Sprite):
         self.image.set_colorkey(transColor)
         self.position = self.tileToCoord(self.tilePos)
         self.rect = self.image.get_rect()
-        self.lastMove = 0
+        
+        self.target = None
+        self.lastMove = 0.0
         self.movement_queue = []
+        self.combat_time_delay = 1000 #miliseconds between swings
+        self.combat_distance = 2 #tiles
+        self.lastAttack=0.0
+        self.strength = 1
+        self.dexterity = 1
+        self.defense = 1
+        self.dead = False
 
     def face(self,directions):
         if('down' in directions):
@@ -115,6 +123,8 @@ class Character(pygame.sprite.Sprite):
                            self.rect.width*.5, self.rect.height * .5)
         
     def update(self, dt):
+        #updates the position of the user based on their tile coord
+        #and their collision rect
         self.frame_display_length-=dt
         if(self.Animate):
             if(self.frame_display_length<0.0):
@@ -160,40 +170,32 @@ class Character(pygame.sprite.Sprite):
                                 self.tilePos = new_tile[:]
                 
                 self.lastMove = currentTime
-class Player(Character):
-    def __init__(self):
-        self.name = 'bob'
-        self.gold = 0
-        self.health = 10
-        self.maxHealth = 10
-        self.inventory = []
-        self.character_image_size = [64,64]
-        self.num_animations = 9
-        self.spriteSheet = spritesheet('data/images/LPC Base Assets/sprites/people/soldier.png')
-        self.tilePos = [25,21]
-        self.zone = 'mapWithCollisions'
-        self.facing = 'down'
-        self.speed = 400 #can move one tile every this many miliseconds 
-        
-        super(Player, self).__init__()    
+
         
     
         
-class NPC(Character):
-    def __init__(self, id):
-        npc_data = NPCS[id]
-        self.name = npc_data[0]
-        spriteSheetLocation = npc_data[1]
-        self.character_image_size = npc_data[2]
-        self.num_animations = npc_data[3]
-        self.aggro = npc_data[4]
-        self.aggroDistance = npc_data[5]
-        self.speed = npc_data[6]
-        self.inventory = []
-        self.spriteSheet = spritesheet(spriteSheetLocation)
-        self.tilePos = [15,23]
-        self.target = None #who is the NPC targeting?
-        self.facing = 'down'
-        super(NPC, self).__init__()    
+    def attack(self):
+        #attempts to attack the current target
+        if self.target is None:
+            return
+        if self.distance(self.target)>self.combat_distance:
+            return
+        if self.target.dead:
+            self.target = None
+            return
+        currentTime = pygame.time.get_ticks()
+        if self.lastAttack+self.combat_time_delay<currentTime:
+              self.lastAttack = currentTime
+              self.target.defend(self)
+              
+    def defend(self,otherUser):
         
+        self.health-= otherUser.strength
+        print('Struck for {} by {}'.format(otherUser.name,otherUser.strength))
+        print('Health: {}'.format(self.health))
+        if(self.health<=0):
+            print('I died!')
+            self.dead = True
+            
+            
 

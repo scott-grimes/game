@@ -1,5 +1,7 @@
 import pygame, sys, datetime, pytmx, pyscroll, eztext
 from Character import *
+from Player import *
+from NPC import *
 from pygame.locals import *
 from pygame.colordict import THECOLORS as COLOR
 from locals import *
@@ -134,8 +136,11 @@ class MainGame(object):
                     distance = char.distance(self.player)
                     if(char.target is None and 
                        distance<char.aggroDistance
-                       and char.aggro == 1):
-                        char.target = self.player
+                       and char.aggro == 1
+                       ):
+                        
+                        if self.player.dead is False:
+                            char.target = self.player
                         
                     #move NPC if nessesary   
                     if(char.target is not None):
@@ -148,10 +153,15 @@ class MainGame(object):
                             
         pass
     
+    def runAttacks(self,dt):
+        for char in self.group:
+            char.attack()
+    
     
     def update(self,dt):
         self.group.update(dt)
         self.moveNPCs(dt)
+        self.runAttacks(dt)
           
     
     def run(self):
@@ -181,7 +191,9 @@ class MainGame(object):
         except KeyboardInterrupt:
             self.running = False
         
-
+def float_message(text,character):
+    #flots the message Text over the character's head
+    pass
      
 def text_objects(text, font):
     textSurface = font.render(text, True, (0,0,0))
