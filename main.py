@@ -9,10 +9,12 @@ from GameState import GameState
 import pyscroll.data
 from pyscroll.group import PyscrollGroup
 from rightClickPopup import *
+from GUI import *
 
 # screen resize
 def init_screen(width, height):
     screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+    
     return screen
 
 #wrapper to get map with path name and extention
@@ -191,29 +193,7 @@ class MainGame(object):
         except KeyboardInterrupt:
             self.running = False
         
-def float_message(text,character):
-    #flots the message Text over the character's head
-    pass
-     
-def text_objects(text, font):
-    textSurface = font.render(text, True, (0,0,0))
-    return textSurface, textSurface.get_rect()
 
-def button(msg,x,y,w,h,ic,ac,action=None):
-    mouse = pygame.mouse.get_pos()
-    click = pygame.mouse.get_pressed()
-    if x+w > mouse[0] > x and y+h > mouse[1] > y:
-        pygame.draw.rect(screen, ac,(x,y,w,h))
-
-        if click[0] == 1 and action != None:
-            action()         
-    else:
-        pygame.draw.rect(screen, ic,(x,y,w,h))
-
-    smallText = pygame.font.SysFont("comicsansms",20)
-    textSurf, textRect = text_objects(msg, smallText)
-    textRect.center = ( (x+(w/2)), (y+(h/2)) )
-    screen.blit(textSurf, textRect)
     
 def runGame():
     try:
@@ -228,8 +208,8 @@ def startScreen():
         BACKGROUND_IMAGE = pygame.image.load('data/images/loginScreen.png')
         screen.blit(BACKGROUND_IMAGE,(0,0))
         while True:
-            button("Login",195,105,160,40,COLOR['white'],COLOR['grey'],runGame)
-            button("New User",195,190,160,40,COLOR['white'],COLOR['grey'],runGame)
+            button("Login",195,105,160,40,COLOR['white'],COLOR['grey'],screen,runGame)
+            button("New User",195,190,160,40,COLOR['white'],COLOR['grey'],screen,runGame)
             pygame.display.update()
             event = pygame.event.wait()
             if event.type==QUIT:
